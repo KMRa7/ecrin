@@ -9,14 +9,12 @@
   <style>
     :root {
       --bg: #f2f2f2;
-      --bar: #3b3b3b;
       --line: #e6e6e6;
       --text: #222;
       --muted: #777;
       --card: #fff;
       --input: #fff;
       --radius: 6px;
-
       --dark: #222;
     }
 
@@ -29,31 +27,7 @@
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
     }
 
-    .topbar {
-      height: 56px;
-      background: var(--bar);
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding: 0 14px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .hamburger {
-      width: 44px;
-      height: 44px;
-      border: 0;
-      background: transparent;
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-    }
-
-    .hamburger .lines { width: 22px; display: grid; gap: 5px; }
-    .hamburger .lines span { display: block; height: 2px; background: #fff; border-radius: 2px; }
-
+    /* ✅ 黒いヘッダー削除したので titlebar を上に固定（任意） */
     .titlebar {
       background: #efefef;
       border-bottom: 1px solid var(--line);
@@ -61,6 +35,9 @@
       text-align: center;
       font-weight: 800;
       letter-spacing: .02em;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .sheet {
@@ -238,13 +215,7 @@
 </head>
 
 <body>
-  <header class="topbar">
-    <button class="hamburger" type="button" aria-label="menu">
-      <div class="lines" aria-hidden="true">
-        <span></span><span></span><span></span>
-      </div>
-    </button>
-  </header>
+  <!-- ✅ ここ（topbar）は削除しました -->
 
   <div class="titlebar">ヒアリングシート</div>
 
@@ -366,7 +337,6 @@
   <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
 
   <script>
-    // 必要に応じて差し替え
     const LIFF_ID = "2008747284-rcXJk7GI";
 
     const el = (id) => document.getElementById(id);
@@ -403,7 +373,6 @@
     });
 
     function syncConditionalUI() {
-      // ③ 合わないベース
       const isBadBase = badBase.value === "あり";
       badBaseDetailWrap.style.display = isBadBase ? "block" : "none";
       if (!isBadBase) {
@@ -416,7 +385,6 @@
       badBaseOtherWrap.style.display = isBadBase && isOther ? "block" : "none";
       if (!(isBadBase && isOther)) badBaseOther.value = "";
 
-      // アレルギー
       const isAllergy = allergy.value === "あり";
       allergyDetailWrap.style.display = isAllergy ? "block" : "none";
       if (!isAllergy) allergyDetail.value = "";
@@ -446,7 +414,6 @@
         memo: memo.value.trim() || "—",
       };
 
-      // 表示用に整形
       if (d.badBase !== "あり") {
         d.badBaseDetailText = "無し";
       } else {
