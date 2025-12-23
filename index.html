@@ -332,27 +332,36 @@
             <p class="hint">「あり」の場合、該当するものを選択してください（複数可）。</p>
       
             <div class="chkGrid">
-              <label class="chk">
-                <input type="checkbox" id="allergyUV" value="紫外線" />
-                紫外線
-              </label>
-      
-              <label class="chk">
-                <input type="checkbox" id="allergyMetal" value="金属" />
-                金属
-              </label>
-      
-              <label class="chk">
-                <input type="checkbox" id="allergyAlcohol" value="アルコール" />
-                アルコール
-              </label>
-      
-              <label class="chk">
-                <input type="checkbox" id="allergyOther" value="その他" />
-                その他
-              </label>
-            </div>
-      
+            <label class="chk">
+              <input type="checkbox" id="allergyGel" value="ジェル" />
+              ジェル
+            </label>
+          
+            <label class="chk">
+              <input type="checkbox" id="allergyFood" value="食品" />
+              食品
+            </label>
+          
+            <label class="chk">
+              <input type="checkbox" id="allergyMetal" value="金属" />
+              金属
+            </label>
+          
+            <label class="chk">
+              <input type="checkbox" id="allergyUV" value="紫外線" />
+              紫外線
+            </label>
+          
+            <label class="chk">
+              <input type="checkbox" id="allergyDisinfectAlcohol" value="消毒用アルコール" />
+              消毒用アルコール
+            </label>
+          
+            <label class="chk">
+              <input type="checkbox" id="allergyOther" value="その他" />
+              その他
+            </label>
+              
             <!-- 「その他」チェック時に表示（下に出す） -->
             <div class="subControl" id="allergyOtherWrap" style="display:none;">
               <p class="hint">「その他」の場合、内容をご記入ください。</p>
@@ -417,9 +426,12 @@
     const allergy = el("allergy");
     const allergyDetailWrap = el("allergyDetailWrap");
     
-    const allergyUV = el("allergyUV");
+    const allergyGel = el("allergyGel");
+    const allergyFood = el("allergyFood");
     const allergyMetal = el("allergyMetal");
-    const allergyAlcohol = el("allergyAlcohol");
+    const allergyUV = el("allergyUV");
+    const allergyDisinfectAlcohol = el("allergyDisinfectAlcohol");
+    
     const allergyOther = el("allergyOther");
     const allergyOtherWrap = el("allergyOtherWrap");
     const allergyOtherText = el("allergyOtherText");
@@ -454,14 +466,21 @@
       // アレルギー
       const isAllergy = allergy.value === "あり";
       allergyDetailWrap.style.display = isAllergy ? "block" : "none";
-    
+      
+      const allergyChecks = [
+        allergyGel,
+        allergyFood,
+        allergyMetal,
+        allergyUV,
+        allergyDisinfectAlcohol,
+        allergyOther
+      ];
+      
       if (!isAllergy) {
-        // なしに戻したら全クリア
-        [allergyUV, allergyMetal, allergyAlcohol, allergyOther].forEach(chk => chk.checked = false);
+        allergyChecks.forEach(chk => chk.checked = false);
         allergyOtherText.value = "";
         allergyOtherWrap.style.display = "none";
       } else {
-        // ありのとき：その他入力の表示制御
         allergyOtherWrap.style.display = allergyOther.checked ? "block" : "none";
         if (!allergyOther.checked) allergyOtherText.value = "";
       }
@@ -471,9 +490,14 @@
     badBaseKind.addEventListener("change", syncConditionalUI);
     allergy.addEventListener("change", syncConditionalUI);
 
-    [allergyUV, allergyMetal, allergyAlcohol, allergyOther].forEach(chk => {
-      chk.addEventListener("change", syncConditionalUI);
-    });
+    [
+      allergyGel,
+      allergyFood,
+      allergyMetal,
+      allergyUV,
+      allergyDisinfectAlcohol,
+      allergyOther
+    ].forEach(chk => chk.addEventListener("change", syncConditionalUI));
 
     backFromInput.addEventListener("click", () => {
       try {
@@ -484,9 +508,12 @@
 
     function getFormData() {
       const selectedAllergies = [];
-      if (allergyUV.checked) selectedAllergies.push("紫外線");
+      if (allergyGel.checked) selectedAllergies.push("ジェル");
+      if (allergyFood.checked) selectedAllergies.push("食品");
       if (allergyMetal.checked) selectedAllergies.push("金属");
-      if (allergyAlcohol.checked) selectedAllergies.push("アルコール");
+      if (allergyUV.checked) selectedAllergies.push("紫外線");
+      if (allergyDisinfectAlcohol.checked) selectedAllergies.push("消毒用アルコール");
+      
       if (allergyOther.checked) {
         const t = allergyOtherText.value.trim();
         selectedAllergies.push(t ? `その他：${t}` : "その他");
