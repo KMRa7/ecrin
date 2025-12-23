@@ -100,6 +100,36 @@
 
     .subControl { margin-top: 10px; }
 
+    /* アレルギー選択肢 */
+    .chkGrid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+    
+    .chk{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid #d6d6d6;
+      border-radius: 12px;
+      background: #fff;
+      font-weight: 800;
+      user-select: none;
+    }
+    
+    .chk input{
+      width: 20px;
+      height: 20px;
+      accent-color: #111;
+    }
+    
+    @media (max-width:380px){
+      .chkGrid{ grid-template-columns: 1fr; }
+    }
+
     .actionsRow {
       padding: 18px 14px 22px;
       border-top: 1px solid var(--line);
@@ -295,10 +325,38 @@
             <option value="なし">なし</option>
             <option value="あり">あり</option>
           </select>
-
+      
+          <!-- 「あり」選択時に表示 -->
           <div class="subControl" id="allergyDetailWrap" style="display:none;">
-            <p class="hint">「あり」の場合、わかる範囲でご記入ください。</p>
-            <input id="allergyDetail" type="text" placeholder="例：ジェルでかぶれた、特定成分など" />
+            <p class="hint">「あり」の場合、該当するものを選択してください（複数可）。</p>
+      
+            <div class="chkGrid">
+              <label class="chk">
+                <input type="checkbox" id="allergyUV" value="紫外線" />
+                紫外線
+              </label>
+      
+              <label class="chk">
+                <input type="checkbox" id="allergyMetal" value="金属" />
+                金属
+              </label>
+      
+              <label class="chk">
+                <input type="checkbox" id="allergyAlcohol" value="アルコール" />
+                アルコール
+              </label>
+      
+              <label class="chk">
+                <input type="checkbox" id="allergyOther" value="その他" />
+                その他
+              </label>
+            </div>
+      
+            <!-- 「その他」チェック時に表示（下に出す） -->
+            <div class="subControl" id="allergyOtherWrap" style="display:none;">
+              <p class="hint">「その他」の場合、内容をご記入ください。</p>
+              <input id="allergyOtherText" type="text" placeholder="例：ラテックス、香料 など" />
+            </div>
           </div>
         </div>
       </div>
@@ -357,7 +415,13 @@
 
     const allergy = el("allergy");
     const allergyDetailWrap = el("allergyDetailWrap");
-    const allergyDetail = el("allergyDetail");
+    
+    const allergyUV = el("allergyUV");
+    const allergyMetal = el("allergyMetal");
+    const allergyAlcohol = el("allergyAlcohol");
+    const allergyOther = el("allergyOther");
+    const allergyOtherWrap = el("allergyOtherWrap");
+    const allergyOtherText = el("allergyOtherText");
 
     const memo = el("memo");
 
@@ -373,6 +437,7 @@
     });
 
     function syncConditionalUI() {
+      // ③ 合わないベース
       const isBadBase = badBase.value === "あり";
       badBaseDetailWrap.style.display = isBadBase ? "block" : "none";
       if (!isBadBase) {
@@ -380,19 +445,34 @@
         badBaseOther.value = "";
         badBaseOtherWrap.style.display = "none";
       }
-
+    
       const isOther = badBaseKind.value === "その他";
       badBaseOtherWrap.style.display = isBadBase && isOther ? "block" : "none";
       if (!(isBadBase && isOther)) badBaseOther.value = "";
-
+    
+      // アレルギー
       const isAllergy = allergy.value === "あり";
       allergyDetailWrap.style.display = isAllergy ? "block" : "none";
-      if (!isAllergy) allergyDetail.value = "";
+    
+      if (!isAllergy) {
+        // なしに戻したら全クリア
+        [allergyUV, allergyMetal, allergyAlcohol, allergyOther].forEach(chk => chk.checked = false);
+        allergyOtherText.value = "";
+        allergyOtherWrap.style.display = "none";
+      } else {
+        // ありのとき：その他入力の表示制御
+        allergyOtherWrap.style.display = allergyOther.checked ? "block" : "none";
+        if (!allergyOther.checked) allergyOtherText.value = "";
+      }
     }
 
     badBase.addEventListener("change", syncConditionalUI);
     badBaseKind.addEventListener("change", syncConditionalUI);
     allergy.addEventListener("change", syncConditionalUI);
+
+    [allergyUV, allergyMetal, allergyAlcohol, allergyOther].forEach(chk => {
+      chk.addEventListener("change", syncConditionalUI);
+    });
 
     backFromInput.addEventListener("click", () => {
       try {
@@ -402,6 +482,15 @@
     });
 
     function getFormData() {
+      const selectedAllergies = [];
+      if (allergyUV.checked) selectedAllergies.push("紫外線");
+      if (allergyMetal.checked) selectedAllergies.push("金属");
+      if (allergyAlcohol.checked) selectedAllergies.push("アルコール");
+      if (allergyOther.checked) {
+        const t = allergyOtherText.value.trim();
+        selectedAllergies.push(t ? `その他：${t}` : "その他");
+      }
+    
       const d = {
         visitFreq: visitFreq.value,
         liftWithinWeek: liftWithinWeek.value,
@@ -410,10 +499,10 @@
         badBaseOther: badBaseOther.value.trim() || "—",
         thickOption: thickOption.value,
         allergy: allergy.value,
-        allergyDetail: allergyDetail.value.trim() || "—",
         memo: memo.value.trim() || "—",
       };
-
+    
+      // 表示用に整形（③）
       if (d.badBase !== "あり") {
         d.badBaseDetailText = "無し";
       } else {
@@ -421,13 +510,22 @@
         else if (d.badBaseKind === "その他") d.badBaseDetailText = `あり（その他：${d.badBaseOther}）`;
         else d.badBaseDetailText = "あり（未選択）";
       }
-
-      if (d.allergy !== "あり") d.allergyText = "なし";
-      else d.allergyText = `あり（${d.allergyDetail}）`;
-
+    
+      // 表示用に整形（アレルギー）
+      if (d.allergy !== "あり") {
+        d.allergyText = "なし";
+      } else {
+        d.allergyText = selectedAllergies.length
+          ? `あり（${selectedAllergies.join("、")}）`
+          : "あり（未選択）";
+      }
+    
+      // バリデーション用にも保持
+      d.selectedAllergies = selectedAllergies;
+    
       return d;
     }
-
+    
     function validate() {
       const d = getFormData();
 
@@ -443,8 +541,17 @@
       if (!d.thickOption) { alert("④ 厚み出し（+1000円）の希望を選択してください。"); thickOption.focus(); return null; }
 
       if (!d.allergy) { alert("アレルギーの有無を選択してください。"); allergy.focus(); return null; }
-      if (d.allergy === "あり" && !allergyDetail.value.trim()) {
-        alert("アレルギー「あり」の場合、内容をご記入ください。"); allergyDetail.focus(); return null;
+
+      if (d.allergy === "あり") {
+        if (!d.selectedAllergies.length) {
+          alert("アレルギー「あり」の場合、該当する項目を選択してください。");
+          return null;
+        }
+        if (allergyOther.checked && !allergyOtherText.value.trim()) {
+          alert("アレルギー「その他」の内容をご記入ください。");
+          allergyOtherText.focus();
+          return null;
+        }
       }
 
       return d;
