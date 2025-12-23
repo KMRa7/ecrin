@@ -27,7 +27,6 @@
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
     }
 
-    /* ✅ 黒いヘッダー削除したので titlebar を上に固定（任意） */
     .titlebar {
       background: #efefef;
       border-bottom: 1px solid var(--line);
@@ -107,7 +106,7 @@
       gap: 10px;
       margin-top: 6px;
     }
-    
+
     .chk{
       width: 100%;
       display:flex;
@@ -120,15 +119,129 @@
       font-weight: 800;
       user-select: none;
     }
-    
+
     .chk input{
       width: 20px;
       height: 20px;
       accent-color: #111;
     }
-    
-    @media (max-width:380px){
-      .chkGrid{ grid-template-columns: 1fr; }
+
+    /* ===== 同意/ポップアップ ===== */
+    .agreeBlock{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      padding-top:2px;
+    }
+
+    .agreeLine{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+      color:#222;
+      user-select:none;
+    }
+
+    .agreeLine input{
+      width:20px;
+      height:20px;
+      accent-color:#111;
+    }
+
+    .pillGreen{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      height:44px;
+      padding:0 16px;
+      border-radius:999px;
+      border:2px solid #111;
+      background:#fff;
+      color:#111;
+      font-weight:900;
+      cursor:pointer;
+      width:100%;
+    }
+    .pillGreen:hover{ background:#f4f4f4; }
+
+    /* modal */
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:100;
+    }
+
+    .modal{
+      width:min(680px,100%);
+      background:#fff;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:0 20px 60px rgba(0,0,0,.25);
+      max-height:85vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .modalHeader{
+      padding:14px 16px;
+      font-weight:900;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .modalClose{
+      border:0;
+      background:#f2f2f2;
+      border-radius:10px;
+      padding:8px 10px;
+      cursor:pointer;
+      font-weight:800;
+    }
+
+    .modalBody{
+      padding:14px 16px;
+      overflow:auto;
+      line-height:1.75;
+      font-size:14px;
+      color:#222;
+    }
+
+    .legalText{
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    .modalFooter{
+      padding:12px 16px;
+      border-top:1px solid var(--line);
+      display:flex;
+      gap:10px;
+    }
+
+    .agreeBtn{
+      flex:1;
+      height:46px;
+      border:0;
+      border-radius:12px;
+      background:#111;
+      color:#fff;
+      font-size:16px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .agreeBtn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
     }
 
     .actionsRow {
@@ -164,9 +277,13 @@
       color: #111;
     }
 
+    .pillConfirm:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+
     /* confirm view */
     .confirm { display: none; padding: 14px; }
-
     .confirm h2 { margin: 8px 0 12px; font-size: 18px; }
 
     .summary {
@@ -246,8 +363,6 @@
 </head>
 
 <body>
-  <!-- ✅ ここ（topbar）は削除しました -->
-
   <div class="titlebar">ヒアリングシート</div>
 
   <!-- 入力画面 -->
@@ -326,43 +441,43 @@
             <option value="なし">なし</option>
             <option value="あり">あり</option>
           </select>
-      
+
           <!-- 「あり」選択時に表示 -->
           <div class="subControl" id="allergyDetailWrap" style="display:none;">
             <p class="hint">「あり」の場合、該当するものを選択してください（複数可）。</p>
-      
+
             <div class="chkGrid">
               <label class="chk">
                 <input type="checkbox" id="allergyGel" value="ジェル" />
                 ジェル
               </label>
-      
+
               <label class="chk">
                 <input type="checkbox" id="allergyFood" value="食品" />
                 食品
               </label>
-      
+
               <label class="chk">
                 <input type="checkbox" id="allergyMetal" value="金属" />
                 金属
               </label>
-      
+
               <label class="chk">
                 <input type="checkbox" id="allergyUV" value="紫外線" />
                 紫外線
               </label>
-      
+
               <label class="chk">
                 <input type="checkbox" id="allergyDisinfectAlcohol" value="消毒用アルコール" />
                 消毒用アルコール
               </label>
-      
+
               <label class="chk">
                 <input type="checkbox" id="allergyOther" value="その他" />
                 その他
               </label>
             </div>
-      
+
             <!-- 「その他」チェック時に表示（下に出す） -->
             <div class="subControl" id="allergyOtherWrap" style="display:none;">
               <p class="hint">「その他」の場合、内容をご記入ください。</p>
@@ -371,7 +486,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="row">
         <div class="label">ご要望など</div>
         <div class="control">
@@ -379,11 +494,41 @@
           <textarea id="memo" placeholder="例：爪が薄い／折れやすい、生活スタイル、希望デザインなど"></textarea>
         </div>
       </div>
-      
+
+      <!-- 承諾書および同意書 -->
+      <div class="row">
+        <div class="label">承諾書・同意書<span class="req">*</span></div>
+        <div class="control">
+          <div class="agreeBlock">
+            <label class="agreeLine">
+              <input id="agreeConsent" type="checkbox" disabled />
+              <span>承諾書および同意書に同意する</span>
+            </label>
+            <button class="pillGreen" type="button" id="openConsent">内容を確認する</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 個人情報の取り扱いについて -->
+      <div class="row">
+        <div class="label">個人情報<span class="req">*</span></div>
+        <div class="control">
+          <div class="agreeBlock">
+            <label class="agreeLine">
+              <input id="agreePrivacy" type="checkbox" disabled />
+              <span>個人情報の取り扱いに同意する</span>
+            </label>
+            <small class="hint">※ポップアップ内を下までスクロールすると「同意する」が押せます。</small>
+            <button class="pillGreen" type="button" id="openPrivacy">内容を確認する</button>
+          </div>
+        </div>
+      </div>
+
       <div class="actionsRow">
         <div class="twoBtns">
           <button class="pillBack" type="button" id="backFromInput">戻る</button>
-          <button class="pillConfirm" type="button" id="toConfirm">確認</button>
+          <!-- ✅ 同意が揃うまで無効 -->
+          <button class="pillConfirm" type="button" id="toConfirm" disabled>確認</button>
         </div>
       </div>
     </form>
@@ -401,6 +546,46 @@
       </div>
     </div>
   </main>
+
+  <!-- 承諾書・同意書 モーダル -->
+  <div class="modalOverlay" id="consentModal" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
+    <div class="modal">
+      <div class="modalHeader">
+        <div id="consentTitle">承諾書および同意書</div>
+        <button class="modalClose" type="button" data-close="consentModal">閉じる</button>
+      </div>
+      <div class="modalBody" id="consentBody">
+        <div class="legalText">承諾書および同意書
+・施術中に痛みやかゆみが生じた場合はすぐに申し出てください。
+・皮膚疾患がみられる場合、施術できない場合があります。
+・ご自身で無理やり除去されますと、自爪を痛める原因となります。
+・お爪の状態によってはお直しできない場合もございます。
+・施術後、浮いてきたり、裂が入ったまま放置されますと、爪の疾患につながる恐れがありますので、お直しにご来店ください。判断が難しい場合は一度ご相談ください。</div>
+      </div>
+      <div class="modalFooter">
+        <button class="agreeBtn" type="button" id="agreeConsentBtn" disabled>同意する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 個人情報 モーダル -->
+  <div class="modalOverlay" id="privacyModal" role="dialog" aria-modal="true" aria-labelledby="privacyTitle">
+    <div class="modal">
+      <div class="modalHeader">
+        <div id="privacyTitle">個人情報の取り扱いについて</div>
+        <button class="modalClose" type="button" data-close="privacyModal">閉じる</button>
+      </div>
+      <div class="modalBody" id="privacyBody">
+        <div class="legalText">個人情報の取り扱いについて
+・当サロンは、ご提供いただいた個人情報を第三者へ開示することはいたしません。
+・お問い合わせ、ご相談等への対応や、キャンペーンに関するご連絡等で利用いたします。
+・あらかじめ、同意または承諾いただいている場合や、法令等に基づく場合はこの限りではありません。</div>
+      </div>
+      <div class="modalFooter">
+        <button class="agreeBtn" type="button" id="agreePrivacyBtn" disabled>同意する</button>
+      </div>
+    </div>
+  </div>
 
   <!-- LIFF -->
   <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
@@ -426,13 +611,13 @@
 
     const allergy = el("allergy");
     const allergyDetailWrap = el("allergyDetailWrap");
-    
+
     const allergyGel = el("allergyGel");
     const allergyFood = el("allergyFood");
     const allergyMetal = el("allergyMetal");
     const allergyUV = el("allergyUV");
     const allergyDisinfectAlcohol = el("allergyDisinfectAlcohol");
-    
+
     const allergyOther = el("allergyOther");
     const allergyOtherWrap = el("allergyOtherWrap");
     const allergyOtherText = el("allergyOtherText");
@@ -444,11 +629,37 @@
     const backBtn = el("backBtn");
     const sendBtn = el("sendBtn");
 
+    // 同意（チェック）
+    const agreeConsent = el("agreeConsent");
+    const agreePrivacy = el("agreePrivacy");
+
+    // 開くボタン
+    const openConsent = el("openConsent");
+    const openPrivacy = el("openPrivacy");
+
+    // モーダル
+    const consentModal = el("consentModal");
+    const privacyModal = el("privacyModal");
+
+    // スクロール領域
+    const consentBody = el("consentBody");
+    const privacyBody = el("privacyBody");
+
+    // モーダル内の同意ボタン
+    const agreeConsentBtn = el("agreeConsentBtn");
+    const agreePrivacyBtn = el("agreePrivacyBtn");
+
     document.addEventListener("DOMContentLoaded", async () => {
       try { await liff.init({ liffId: LIFF_ID }); }
       catch (e) { console.warn("LIFF init failed (ブラウザ確認中はOK):", e); }
+
       syncConditionalUI();
+      refreshConfirmButton();
     });
+
+    function refreshConfirmButton() {
+      toConfirm.disabled = !(agreeConsent.checked && agreePrivacy.checked);
+    }
 
     function syncConditionalUI() {
       // ③ 合わないベース
@@ -459,15 +670,15 @@
         badBaseOther.value = "";
         badBaseOtherWrap.style.display = "none";
       }
-    
+
       const isOther = badBaseKind.value === "その他";
       badBaseOtherWrap.style.display = isBadBase && isOther ? "block" : "none";
       if (!(isBadBase && isOther)) badBaseOther.value = "";
-    
+
       // アレルギー
       const isAllergy = allergy.value === "あり";
       allergyDetailWrap.style.display = isAllergy ? "block" : "none";
-      
+
       const allergyChecks = [
         allergyGel,
         allergyFood,
@@ -476,7 +687,7 @@
         allergyDisinfectAlcohol,
         allergyOther
       ];
-      
+
       if (!isAllergy) {
         allergyChecks.forEach(chk => chk.checked = false);
         allergyOtherText.value = "";
@@ -507,6 +718,48 @@
       } catch (e) { history.back(); }
     });
 
+    // ===== モーダル共通：下までスクロールしたら同意ボタン有効 =====
+    function openModalWithScrollGate(modalEl, bodyEl, agreeBtnEl) {
+      modalEl.style.display = "flex";
+      agreeBtnEl.disabled = true;
+      bodyEl.scrollTop = 0;
+
+      const check = () => {
+        const nearBottom = bodyEl.scrollTop + bodyEl.clientHeight >= bodyEl.scrollHeight - 4;
+        if (nearBottom) agreeBtnEl.disabled = false;
+      };
+
+      check();
+      bodyEl._scrollGateHandler && bodyEl.removeEventListener("scroll", bodyEl._scrollGateHandler);
+      bodyEl._scrollGateHandler = check;
+      bodyEl.addEventListener("scroll", check, { passive: true });
+    }
+
+    openConsent.addEventListener("click", () => openModalWithScrollGate(consentModal, consentBody, agreeConsentBtn));
+    openPrivacy.addEventListener("click", () => openModalWithScrollGate(privacyModal, privacyBody, agreePrivacyBtn));
+
+    // 閉じる（ボタン＆背景）
+    document.querySelectorAll("[data-close]").forEach(btn => {
+      btn.addEventListener("click", () => el(btn.dataset.close).style.display = "none");
+    });
+    [consentModal, privacyModal].forEach(modal => {
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) modal.style.display = "none";
+      });
+    });
+
+    // 同意する → チェックON
+    agreeConsentBtn.addEventListener("click", () => {
+      agreeConsent.checked = true;
+      consentModal.style.display = "none";
+      refreshConfirmButton();
+    });
+    agreePrivacyBtn.addEventListener("click", () => {
+      agreePrivacy.checked = true;
+      privacyModal.style.display = "none";
+      refreshConfirmButton();
+    });
+
     function getFormData() {
       const selectedAllergies = [];
       if (allergyGel.checked) selectedAllergies.push("ジェル");
@@ -514,12 +767,12 @@
       if (allergyMetal.checked) selectedAllergies.push("金属");
       if (allergyUV.checked) selectedAllergies.push("紫外線");
       if (allergyDisinfectAlcohol.checked) selectedAllergies.push("消毒用アルコール");
-      
+
       if (allergyOther.checked) {
         const t = allergyOtherText.value.trim();
         selectedAllergies.push(t ? `その他：${t}` : "その他");
       }
-    
+
       const d = {
         visitFreq: visitFreq.value,
         liftWithinWeek: liftWithinWeek.value,
@@ -530,7 +783,7 @@
         allergy: allergy.value,
         memo: memo.value.trim() || "—",
       };
-    
+
       // 表示用に整形（③）
       if (d.badBase !== "あり") {
         d.badBaseDetailText = "無し";
@@ -539,7 +792,7 @@
         else if (d.badBaseKind === "その他") d.badBaseDetailText = `あり（その他：${d.badBaseOther}）`;
         else d.badBaseDetailText = "あり（未選択）";
       }
-    
+
       // 表示用に整形（アレルギー）
       if (d.allergy !== "あり") {
         d.allergyText = "なし";
@@ -548,18 +801,19 @@
           ? `あり（${selectedAllergies.join("、")}）`
           : "あり（未選択）";
       }
-    
-      // バリデーション用にも保持
+
+      // バリデーション用
       d.selectedAllergies = selectedAllergies;
-    
+
       return d;
     }
-    
+
     function validate() {
       const d = getFormData();
 
       if (!d.visitFreq) { alert("① 通う頻度を選択してください。"); visitFreq.focus(); return null; }
       if (!d.liftWithinWeek) { alert("② 1週間以内に浮いたことがあるかを選択してください。"); liftWithinWeek.focus(); return null; }
+
       if (!d.badBase) { alert("③ 合わないベースの有無を選択してください。"); badBase.focus(); return null; }
       if (d.badBase === "あり") {
         if (!badBaseKind.value) { alert("③「あり」の場合、パラジェル／その他を選択してください。"); badBaseKind.focus(); return null; }
@@ -567,10 +821,10 @@
           alert("③「その他」の内容をご記入ください。"); badBaseOther.focus(); return null;
         }
       }
+
       if (!d.thickOption) { alert("④ 厚み出し（+1000円）の希望を選択してください。"); thickOption.focus(); return null; }
 
       if (!d.allergy) { alert("アレルギーの有無を選択してください。"); allergy.focus(); return null; }
-
       if (d.allergy === "あり") {
         if (!d.selectedAllergies.length) {
           alert("アレルギー「あり」の場合、該当する項目を選択してください。");
@@ -583,9 +837,14 @@
         }
       }
 
+      // ✅ 同意チェック
+      if (!agreeConsent.checked) { alert("承諾書および同意書を確認し、同意してください。"); return null; }
+      if (!agreePrivacy.checked) { alert("個人情報の取り扱いを確認し、同意してください。"); return null; }
+
       return d;
     }
 
+    // confirm step
     toConfirm.addEventListener("click", () => {
       const d = validate();
       if (!d) return;
@@ -597,6 +856,8 @@
         ["④ 厚み出し（+1000円）", d.thickOption],
         ["アレルギー", d.allergyText],
         ["ご要望など", d.memo],
+        ["承諾書・同意書", "同意済み"],
+        ["個人情報", "同意済み"],
       ];
 
       summaryEl.innerHTML = rows.map(([k, v]) => `
@@ -617,6 +878,7 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
+    // send
     sendBtn.addEventListener("click", async () => {
       const d = validate();
       if (!d) return;
@@ -628,7 +890,9 @@
 【③ 合わないベース】${d.badBaseDetailText}
 【④ 厚み出し（+1000円）】${d.thickOption}
 【アレルギー】${d.allergyText}
-【ご要望など】${d.memo}`;
+【ご要望など】${d.memo}
+【承諾書・同意書】同意済み
+【個人情報】同意済み`;
 
       try {
         if (window.liff && liff.isInClient && liff.isInClient()) {
