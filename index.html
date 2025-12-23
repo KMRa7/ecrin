@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>ヒアリングシート</title>
+
+  <style>
+    :root {
+      --bg: #f2f2f2;
+      --bar: #3b3b3b;
+      --line: #e6e6e6;
+      --text: #222;
+      --muted: #777;
+      --card: #fff;
+      --input: #fff;
+      --radius: 6px;
+
+      --dark: #222;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+    }
+
+    .topbar {
+      height: 56px;
+      background: var(--bar);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 14px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .hamburger {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .hamburger .lines { width: 22px; display: grid; gap: 5px; }
+    .hamburger .lines span { display: block; height: 2px; background: #fff; border-radius: 2px; }
+
+    .titlebar {
+      background: #efefef;
+      border-bottom: 1px solid var(--line);
+      padding: 12px 14px;
+      text-align: center;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    .sheet {
+      max-width: 720px;
+      margin: 0 auto;
+      background: var(--card);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      padding: 14px;
+      border-top: 1px solid var(--line);
+      align-items: flex-start;
+    }
+    .row:first-child { border-top: 0; }
+
+    .label {
+      width: 180px;
+      min-width: 180px;
+      font-weight: 800;
+      padding-top: 10px;
+      line-height: 1.2;
+    }
+    .label .req { margin-left: 4px; font-weight: 900; }
+
+    .control { flex: 1; }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 6px;
+      line-height: 1.4;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d6d6d6;
+      border-radius: var(--radius);
+      padding: 0 12px;
+      background: var(--input);
+      font-size: 16px;
+      outline: none;
+    }
+
+    input, select { height: 46px; }
+    textarea {
+      padding: 10px 12px;
+      min-height: 110px;
+      resize: vertical;
+      font-size: 16px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #9bbcff;
+      box-shadow: 0 0 0 3px rgba(11, 99, 255, .12);
+    }
+
+    .subControl { margin-top: 10px; }
+
+    .actionsRow {
+      padding: 18px 14px 22px;
+      border-top: 1px solid var(--line);
+      background: #fff;
+      position: sticky;
+      bottom: 0;
+      z-index: 5;
+      padding-bottom: calc(22px + env(safe-area-inset-bottom));
+    }
+
+    .twoBtns { display: flex; gap: 12px; }
+
+    .pillBack, .pillConfirm {
+      flex: 1;
+      height: 52px;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .pillBack {
+      border: 2px solid #666;
+      background: #fff;
+      color: #111;
+    }
+
+    .pillConfirm {
+      border: 2px solid #111;
+      background: #fff;
+      color: #111;
+    }
+
+    /* confirm view */
+    .confirm { display: none; padding: 14px; }
+
+    .confirm h2 { margin: 8px 0 12px; font-size: 18px; }
+
+    .summary {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .sumRow {
+      display: flex;
+      gap: 12px;
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
+    }
+    .sumRow:first-child { border-top: 0; }
+
+    .sumKey {
+      width: 200px;
+      min-width: 200px;
+      color: #111;
+      font-weight: 900;
+    }
+
+    .sumVal { flex: 1; color: #222; word-break: break-word; }
+
+    .confirmActions { display: flex; gap: 12px; margin-top: 14px; }
+
+    .ghost {
+      flex: 1;
+      height: 52px;
+      border-radius: 999px;
+      border: 2px solid #666;
+      background: #fff;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+      color: #111;
+    }
+
+    .send {
+      flex: 1;
+      height: 52px;
+      border-radius: 999px;
+      border: 0;
+      background: var(--dark);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    @media (max-width:520px) {
+      .label { width: 140px; min-width: 140px; }
+      .sumKey { width: 140px; min-width: 140px; }
+    }
+
+    /* ===== スマホ最適化 ===== */
+    html { -webkit-text-size-adjust: 100%; }
+
+    .sheet { max-width: 640px; width: 100%; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .label { width: auto; min-width: 0; padding-top: 0; font-size: 15px; }
+
+    @media (max-width: 380px) {
+      .row { grid-template-columns: 1fr; align-items: start; }
+      .label { padding-top: 0; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <button class="hamburger" type="button" aria-label="menu">
+      <div class="lines" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+    </button>
+  </header>
+
+  <div class="titlebar">ヒアリングシート</div>
+
+  <!-- 入力画面 -->
+  <main class="sheet" id="inputView">
+    <form id="karteForm" novalidate>
+
+      <div class="row">
+        <div class="label">① 通う頻度<span class="req">*</span></div>
+        <div class="control">
+          <p class="hint">どのくらいネイルサロンに通っていますか？</p>
+          <select id="visitFreq" required>
+            <option value="">—</option>
+            <option value="初めて">初めて</option>
+            <option value="数回">数回</option>
+            <option value="1年以上">1年以上</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">② 1週間以内に浮き<span class="req">*</span></div>
+        <div class="control">
+          <p class="hint">今まで施術後、1週間以内に浮いた／取れたことがありますか？</p>
+          <select id="liftWithinWeek" required>
+            <option value="">—</option>
+            <option value="ある">ある</option>
+            <option value="ない">ない</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">③ 合わないベース<span class="req">*</span></div>
+        <div class="control">
+          <p class="hint">今まで合わなかったベースジェルはありますか？</p>
+          <select id="badBase" required>
+            <option value="">—</option>
+            <option value="無し">無し</option>
+            <option value="あり">あり</option>
+          </select>
+
+          <div class="subControl" id="badBaseDetailWrap" style="display:none;">
+            <p class="hint">「あり」の場合、該当を選択してください。</p>
+            <select id="badBaseKind">
+              <option value="">—</option>
+              <option value="パラジェル">パラジェル</option>
+              <option value="その他">その他</option>
+            </select>
+
+            <div class="subControl" id="badBaseOtherWrap" style="display:none;">
+              <p class="hint">「その他」の場合、内容をご記入ください。</p>
+              <input id="badBaseOther" type="text" placeholder="例：メーカー名、症状など" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">④ 厚み出し<span class="req">*</span></div>
+        <div class="control">
+          <p class="hint">厚み出しご希望の方：+1000円</p>
+          <select id="thickOption" required>
+            <option value="">—</option>
+            <option value="相談したい">相談したい</option>
+            <option value="希望する">希望する</option>
+            <option value="しない">しない</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">アレルギー<span class="req">*</span></div>
+        <div class="control">
+          <select id="allergy" required>
+            <option value="">—</option>
+            <option value="なし">なし</option>
+            <option value="あり">あり</option>
+          </select>
+
+          <div class="subControl" id="allergyDetailWrap" style="display:none;">
+            <p class="hint">「あり」の場合、わかる範囲でご記入ください。</p>
+            <input id="allergyDetail" type="text" placeholder="例：ジェルでかぶれた、特定成分など" />
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">ご要望など</div>
+        <div class="control">
+          <p class="hint">ご要望等ございましたらご記入ください。</p>
+          <textarea id="memo" placeholder="例：爪が薄い／折れやすい、生活スタイル、希望デザインなど"></textarea>
+        </div>
+      </div>
+
+      <div class="actionsRow">
+        <div class="twoBtns">
+          <button class="pillBack" type="button" id="backFromInput">戻る</button>
+          <button class="pillConfirm" type="button" id="toConfirm">確認</button>
+        </div>
+      </div>
+    </form>
+  </main>
+
+  <!-- 確認画面 -->
+  <main class="sheet confirm" id="confirmView" aria-live="polite">
+    <div style="padding:14px;">
+      <h2>入力内容の確認</h2>
+      <div class="summary" id="summary"></div>
+
+      <div class="confirmActions">
+        <button class="ghost" type="button" id="backBtn">戻る</button>
+        <button class="send" type="button" id="sendBtn">送信</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- LIFF -->
+  <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+
+  <script>
+    // 必要に応じて差し替え
+    const LIFF_ID = "2008747284-rcXJk7GI";
+
+    const el = (id) => document.getElementById(id);
+
+    const inputView = el("inputView");
+    const confirmView = el("confirmView");
+    const summaryEl = el("summary");
+
+    const visitFreq = el("visitFreq");
+    const liftWithinWeek = el("liftWithinWeek");
+    const badBase = el("badBase");
+    const badBaseDetailWrap = el("badBaseDetailWrap");
+    const badBaseKind = el("badBaseKind");
+    const badBaseOtherWrap = el("badBaseOtherWrap");
+    const badBaseOther = el("badBaseOther");
+
+    const thickOption = el("thickOption");
+
+    const allergy = el("allergy");
+    const allergyDetailWrap = el("allergyDetailWrap");
+    const allergyDetail = el("allergyDetail");
+
+    const memo = el("memo");
+
+    const toConfirm = el("toConfirm");
+    const backFromInput = el("backFromInput");
+    const backBtn = el("backBtn");
+    const sendBtn = el("sendBtn");
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      try { await liff.init({ liffId: LIFF_ID }); }
+      catch (e) { console.warn("LIFF init failed (ブラウザ確認中はOK):", e); }
+      syncConditionalUI();
+    });
+
+    function syncConditionalUI() {
+      // ③ 合わないベース
+      const isBadBase = badBase.value === "あり";
+      badBaseDetailWrap.style.display = isBadBase ? "block" : "none";
+      if (!isBadBase) {
+        badBaseKind.value = "";
+        badBaseOther.value = "";
+        badBaseOtherWrap.style.display = "none";
+      }
+
+      const isOther = badBaseKind.value === "その他";
+      badBaseOtherWrap.style.display = isBadBase && isOther ? "block" : "none";
+      if (!(isBadBase && isOther)) badBaseOther.value = "";
+
+      // アレルギー
+      const isAllergy = allergy.value === "あり";
+      allergyDetailWrap.style.display = isAllergy ? "block" : "none";
+      if (!isAllergy) allergyDetail.value = "";
+    }
+
+    badBase.addEventListener("change", syncConditionalUI);
+    badBaseKind.addEventListener("change", syncConditionalUI);
+    allergy.addEventListener("change", syncConditionalUI);
+
+    backFromInput.addEventListener("click", () => {
+      try {
+        if (window.liff && liff.isInClient && liff.isInClient()) liff.closeWindow();
+        else history.back();
+      } catch (e) { history.back(); }
+    });
+
+    function getFormData() {
+      const d = {
+        visitFreq: visitFreq.value,
+        liftWithinWeek: liftWithinWeek.value,
+        badBase: badBase.value,
+        badBaseKind: badBaseKind.value || "—",
+        badBaseOther: badBaseOther.value.trim() || "—",
+        thickOption: thickOption.value,
+        allergy: allergy.value,
+        allergyDetail: allergyDetail.value.trim() || "—",
+        memo: memo.value.trim() || "—",
+      };
+
+      // 表示用に整形
+      if (d.badBase !== "あり") {
+        d.badBaseDetailText = "無し";
+      } else {
+        if (d.badBaseKind === "パラジェル") d.badBaseDetailText = "あり（パラジェル）";
+        else if (d.badBaseKind === "その他") d.badBaseDetailText = `あり（その他：${d.badBaseOther}）`;
+        else d.badBaseDetailText = "あり（未選択）";
+      }
+
+      if (d.allergy !== "あり") d.allergyText = "なし";
+      else d.allergyText = `あり（${d.allergyDetail}）`;
+
+      return d;
+    }
+
+    function validate() {
+      const d = getFormData();
+
+      if (!d.visitFreq) { alert("① 通う頻度を選択してください。"); visitFreq.focus(); return null; }
+      if (!d.liftWithinWeek) { alert("② 1週間以内に浮いたことがあるかを選択してください。"); liftWithinWeek.focus(); return null; }
+      if (!d.badBase) { alert("③ 合わないベースの有無を選択してください。"); badBase.focus(); return null; }
+      if (d.badBase === "あり") {
+        if (!badBaseKind.value) { alert("③「あり」の場合、パラジェル／その他を選択してください。"); badBaseKind.focus(); return null; }
+        if (badBaseKind.value === "その他" && !badBaseOther.value.trim()) {
+          alert("③「その他」の内容をご記入ください。"); badBaseOther.focus(); return null;
+        }
+      }
+      if (!d.thickOption) { alert("④ 厚み出し（+1000円）の希望を選択してください。"); thickOption.focus(); return null; }
+
+      if (!d.allergy) { alert("アレルギーの有無を選択してください。"); allergy.focus(); return null; }
+      if (d.allergy === "あり" && !allergyDetail.value.trim()) {
+        alert("アレルギー「あり」の場合、内容をご記入ください。"); allergyDetail.focus(); return null;
+      }
+
+      return d;
+    }
+
+    toConfirm.addEventListener("click", () => {
+      const d = validate();
+      if (!d) return;
+
+      const rows = [
+        ["① 通う頻度", d.visitFreq],
+        ["② 1週間以内に浮き", d.liftWithinWeek],
+        ["③ 合わないベース", d.badBaseDetailText],
+        ["④ 厚み出し（+1000円）", d.thickOption],
+        ["アレルギー", d.allergyText],
+        ["ご要望など", d.memo],
+      ];
+
+      summaryEl.innerHTML = rows.map(([k, v]) => `
+        <div class="sumRow">
+          <div class="sumKey">${escapeHtml(k)}</div>
+          <div class="sumVal">${escapeHtml(v)}</div>
+        </div>
+      `).join("");
+
+      inputView.style.display = "none";
+      confirmView.style.display = "block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    backBtn.addEventListener("click", () => {
+      confirmView.style.display = "none";
+      inputView.style.display = "block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    sendBtn.addEventListener("click", async () => {
+      const d = validate();
+      if (!d) return;
+
+      const text =
+`≪ヒアリングシート≫
+【① 通う頻度】${d.visitFreq}
+【② 1週間以内に浮き】${d.liftWithinWeek}
+【③ 合わないベース】${d.badBaseDetailText}
+【④ 厚み出し（+1000円）】${d.thickOption}
+【アレルギー】${d.allergyText}
+【ご要望など】${d.memo}`;
+
+      try {
+        if (window.liff && liff.isInClient && liff.isInClient()) {
+          await liff.sendMessages([{ type: "text", text }]);
+          alert("ご記入ありがとうございます。");
+          liff.closeWindow();
+        } else {
+          alert("（ブラウザ確認）送信テキストをコンソールに出力しました。");
+          console.log(text);
+        }
+      } catch (e) {
+        console.error(e);
+        alert("送信に失敗しました。もう一度お試しください。");
+      }
+    });
+
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+
+</html>
