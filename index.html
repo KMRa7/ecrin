@@ -369,6 +369,15 @@
   <main class="sheet" id="inputView">
     <form id="karteForm" novalidate>
 
+      <!-- ✅ お名前（フルネーム）追加：一番上 -->
+      <div class="row">
+        <div class="label">お名前（フルネーム）<span class="req">*</span></div>
+        <div class="control">
+          <p class="hint">フルネームでご入力ください。</p>
+          <input id="customerName" type="text" placeholder="例：山田 太郎" autocomplete="name" required />
+        </div>
+      </div>
+
       <div class="row">
         <div class="label">① 通う頻度<span class="req">*</span></div>
         <div class="control">
@@ -599,6 +608,9 @@
     const confirmView = el("confirmView");
     const summaryEl = el("summary");
 
+    // ✅ 追加：お名前
+    const customerName = el("customerName");
+
     const visitFreq = el("visitFreq");
     const liftWithinWeek = el("liftWithinWeek");
     const badBase = el("badBase");
@@ -774,6 +786,9 @@
       }
 
       const d = {
+        // ✅ 追加：お名前
+        name: customerName.value.trim(),
+
         visitFreq: visitFreq.value,
         liftWithinWeek: liftWithinWeek.value,
         badBase: badBase.value,
@@ -810,6 +825,9 @@
 
     function validate() {
       const d = getFormData();
+
+      // ✅ お名前必須
+      if (!d.name) { alert("お名前（フルネーム）を入力してください。"); customerName.focus(); return null; }
 
       if (!d.visitFreq) { alert("① 通う頻度を選択してください。"); visitFreq.focus(); return null; }
       if (!d.liftWithinWeek) { alert("② 1週間以内に浮いたことがあるかを選択してください。"); liftWithinWeek.focus(); return null; }
@@ -850,6 +868,9 @@
       if (!d) return;
 
       const rows = [
+        // ✅ 追加：確認画面の先頭に表示
+        ["お名前（フルネーム）", d.name],
+
         ["① 通う頻度", d.visitFreq],
         ["② 1週間以内に浮き", d.liftWithinWeek],
         ["③ 合わないベース", d.badBaseDetailText],
@@ -885,6 +906,7 @@
 
       const text =
 `≪ヒアリングシート≫
+【お名前（フルネーム）】${d.name}
 【① 通う頻度】${d.visitFreq}
 【② 1週間以内に浮き】${d.liftWithinWeek}
 【③ 合わないベース】${d.badBaseDetailText}
